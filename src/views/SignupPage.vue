@@ -45,6 +45,7 @@
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { IonPage, IonContent, IonItem, IonLabel, IonInput, IonButton } from '@ionic/vue';
+import { cadastrar, atualizarPerfil } from '@/service/AuthService'
 
 const router = useRouter();
 const nome = ref('');
@@ -52,9 +53,21 @@ const email = ref('');
 const senha = ref('');
 const senha2 = ref('');
 
-function criar() {
-  // mock: cadastro sempre segue para o onboarding de personalização
-  router.push('/onboarding');
+async function criar() {
+  try {
+    if(senha.value !== senha2.value){
+      alert("Senha precisam serem iguais")
+      return
+    }
+
+    await cadastrar(email.value, senha.value)
+    await atualizarPerfil(nome.value)
+
+    alert("Conta criada")
+    router.push('/onboarding');
+  } catch (error: any) {
+    alert(error.message)
+  }
 }
 </script>
 

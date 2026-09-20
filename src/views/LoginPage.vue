@@ -50,17 +50,26 @@
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { IonPage, IonContent, IonItem, IonLabel, IonInput, IonButton, IonToast } from '@ionic/vue';
+import { logar } from "@/service/AuthService"
+
 
 const router = useRouter();
-const email = ref('mario.andrade@email.com');
-const senha = ref('senha123');
+const email = ref('');
+const senha = ref('');
 
 const toastOpen = ref(false);
 const toastText = ref('');
 function toastMsg(msg: string) { toastText.value = msg; toastOpen.value = true; }
 
-function entrar() {
-  router.replace('/app/tabs/chat');
+async function entrar() {
+
+  try {
+    await logar(email.value, senha.value)
+    router.replace('/app/tabs/chat');
+  } catch(error: any) {
+      alert(error.message)
+  }
+ 
 }
 </script>
 
