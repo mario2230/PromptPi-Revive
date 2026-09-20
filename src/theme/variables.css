@@ -1,0 +1,144 @@
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600;700&family=Inter:wght@400;500;600;700;800&display=swap');
+
+:root {
+  --ion-color-primary: #8B6CFF;
+  --ion-color-primary-rgb: 139, 108, 255;
+  --ion-color-primary-contrast: #ffffff;
+  --ion-color-primary-contrast-rgb: 255, 255, 255;
+  --ion-color-primary-shade: #7a5fe0;
+  --ion-color-primary-tint: #9a7cff;
+
+  --ion-color-secondary: #3E5CE7;
+  --ion-color-secondary-rgb: 62, 92, 231;
+  --ion-color-secondary-contrast: #ffffff;
+  --ion-color-secondary-contrast-rgb: 255, 255, 255;
+  --ion-color-secondary-shade: #3751cb;
+  --ion-color-secondary-tint: #5470ea;
+
+  --ion-color-tertiary: #5260ff;
+  --ion-color-tertiary-rgb: 82, 96, 255;
+  --ion-color-tertiary-contrast: #ffffff;
+  --ion-color-tertiary-contrast-rgb: 255, 255, 255;
+  --ion-color-tertiary-shade: #4854e0;
+  --ion-color-tertiary-tint: #6370ff;
+
+  --ion-color-success: #3ddc97;
+  --ion-color-success-rgb: 61, 220, 151;
+  --ion-color-success-contrast: #000000;
+  --ion-color-success-contrast-rgb: 0, 0, 0;
+  --ion-color-success-shade: #36c185;
+  --ion-color-success-tint: #51e0a1;
+
+  --ion-color-warning: #ffc409;
+  --ion-color-warning-rgb: 255, 196, 9;
+  --ion-color-warning-contrast: #000000;
+  --ion-color-warning-contrast-rgb: 0, 0, 0;
+  --ion-color-warning-shade: #e0ac08;
+  --ion-color-warning-tint: #ffca22;
+
+  --ion-color-danger: #f0665d;
+  --ion-color-danger-rgb: 240, 102, 93;
+  --ion-color-danger-contrast: #ffffff;
+  --ion-color-danger-contrast-rgb: 255, 255, 255;
+  --ion-color-danger-shade: #d35a52;
+  --ion-color-danger-tint: #f2766e;
+
+  --ion-color-medium: #8890BE;
+  --ion-color-medium-rgb: 136, 144, 190;
+  --ion-color-medium-contrast: #0A0D1F;
+  --ion-color-medium-contrast-rgb: 10, 13, 31;
+  --ion-color-medium-shade: #787fa7;
+  --ion-color-medium-tint: #949bc4;
+
+  --ion-color-light: #1A2145;
+  --ion-color-light-rgb: 26, 33, 69;
+  --ion-color-light-contrast: #EEF0FF;
+  --ion-color-light-contrast-rgb: 238, 240, 255;
+  --ion-color-light-shade: #171d3d;
+  --ion-color-light-tint: #2a3258;
+
+  --ion-color-dark: #EEF0FF;
+  --ion-color-dark-rgb: 238, 240, 255;
+  --ion-color-dark-contrast: #0A0D1F;
+  --ion-color-dark-contrast-rgb: 10, 13, 31;
+  --ion-color-dark-shade: #d1d3e0;
+  --ion-color-dark-tint: #f0f2ff;
+
+  --pp-surface: #121838;
+  --pp-surface-raised: #1A2145;
+  --pp-surface-hover: #212A54;
+  --pp-border: rgba(165, 173, 255, 0.18);
+  --pp-border-soft: rgba(255, 255, 255, 0.06);
+  --pp-primary: #8B6CFF;
+  --pp-blue: #3E5CE7;
+  --pp-lilac: #D9D1FF;
+  --pp-text: #EEF0FF;
+  --pp-muted: #9AA7D6;
+  --pp-muted-2: #7D88BC;
+  --pp-success: #3DDC97;
+  --pp-font-voice: 'Fraunces', Georgia, serif;
+  --pp-font-sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+body {
+  --ion-background-color: #090E22;
+  --ion-background-color-rgb: 9, 14, 34;
+  --ion-text-color: #EEF0FF;
+  --ion-text-color-rgb: 238, 240, 255;
+
+  --ion-toolbar-background: rgba(15, 19, 41, 0.92);
+  --ion-toolbar-border-color: rgba(165, 173, 255, 0.12);
+  --ion-item-background: rgba(18, 24, 56, 0.7);
+  --ion-item-border-color: rgba(165, 173, 255, 0.14);
+  --ion-card-background: rgba(18, 24, 56, 0.8);
+  --ion-border-color: rgba(165, 173, 255, 0.14);
+  --ion-tab-bar-background: rgba(15, 19, 41, 0.9);
+  --ion-tab-bar-border-color: rgba(165, 173, 255, 0.12);
+
+  background:
+    radial-gradient(circle at top left, rgba(139, 108, 255, 0.18), transparent 28%),
+    radial-gradient(circle at bottom right, rgba(62, 92, 231, 0.22), transparent 30%),
+    var(--ion-background-color);
+  color: var(--pp-text);
+  font-family: var(--pp-font-sans);
+  color-scheme: dark;
+}
+
+ion-app, ion-page, ion-content {
+  background: transparent;
+}
+
+ion-toolbar {
+  --min-height: 62px;
+  --padding-top: 8px;
+  --padding-bottom: 8px;
+  backdrop-filter: blur(8px);
+}
+
+ion-button {
+  --border-radius: 12px;
+  --box-shadow: none;
+  letter-spacing: 0.01em;
+}
+
+ion-tab-button {
+  --color: var(--pp-muted);
+  --color-selected: var(--pp-text);
+}
+
+ion-card, ion-item, .auth-panel, .pcard {
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.18);
+}
+
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(155, 160, 220, 0.35);
+  border-radius: 999px;
+}

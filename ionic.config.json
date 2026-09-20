@@ -1,0 +1,7 @@
+{
+  "name": "PromptPi-Revive",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "vue-vite"
+}
