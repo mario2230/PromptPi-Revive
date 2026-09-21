@@ -87,7 +87,6 @@ function next() {
     stepIndex.value++;
     return;
   }
-  // aplica as respostas no perfil de IA (mock)
   if (answers.profissao) aiProfile.profissao = answers.profissao as string;
   if (answers.area) aiProfile.area = answers.area as string;
   if (answers.nivel) aiProfile.nivel = answers.nivel as string;
