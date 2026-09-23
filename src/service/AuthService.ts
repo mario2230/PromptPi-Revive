@@ -1,17 +1,17 @@
 import { auth } from '@/main'
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, updateProfile, updatePassword, onAuthStateChanged, User } from 'firebase/auth'
+import { F } from 'vue-router/dist/index-D7ja2BKs'
 
 export async function cadastrar(email:string, senha:string){
-
     const credential = await createUserWithEmailAndPassword(
         auth,
         email,
         senha
     )
-
     return credential.user
 
 }
+
 
 export function logar(email:string, senha: string) {
     return signInWithEmailAndPassword(auth, email, senha)

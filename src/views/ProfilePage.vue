@@ -22,10 +22,10 @@
           <div class="panel">
             <div class="row-between" style="margin-bottom: 20px">
               <div class="who">
-                <div class="avatar-lg">{{ account.initials }}</div>
+                <div class="avatar-lg">{{ nomeInicial }}</div>
                 <div>
-                  <div class="acc-name">{{ account.name }}</div>
-                  <div class="tag">{{ account.email }}</div>
+                  <div class="acc-name">{{ nome }}</div>
+                  <div class="tag">{{ email }}</div>
                 </div>
               </div>
               <ion-button size="small" fill="outline" color="medium" style="--border-radius: 8px" @click="toast('Alteração de foto ainda não implementada nesta versão')">
@@ -37,7 +37,7 @@
             
             <ion-input label="Senha" label-placement="stacked" v-model="senhaNovo"></ion-input>
 
-            <div class="kv-row"><span class="kv-label">Conta criada em</span><span>{{ account.createdAt }}</span></div>
+            <div class="kv-row"><span class="kv-label">Conta criada em</span><span>{{ ContaCriada }}</span></div>
           </div>
           <div class="action-row">
             <ion-button fill="outline" color="medium" style="--border-radius: 9px" @click="salvarNome()">
@@ -119,7 +119,7 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref } from 'vue';
+import { computed, onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import {
   IonPage, IonHeader, IonToolbar, IonTitle, IonSegment, IonSegmentButton, IonLabel,
@@ -145,9 +145,11 @@ const estrutura = ['Objetivo', 'Contexto', 'Instruções', 'Restrições', 'Form
 const nome = ref("")
 const email = ref("")
 
-
 const nomeNovo = ref("")
 const senhaNovo = ref("")
+const ContaCriada = ref("")
+const nomeInicial = computed(() => (nome.value || 'U').charAt(0).toUpperCase())
+
 
 const toastOpen = ref(false);
 const toastText = ref('');
@@ -190,6 +192,7 @@ onMounted(() => {
 
   nome.value = user.displayName || "";
   email.value = user.email || "";
+  ContaCriada.value = user.metadata.creationTime || "";
 
   nomeNovo.value = nome.value;
 })
