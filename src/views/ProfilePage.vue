@@ -32,18 +32,22 @@
                 Alterar foto
               </ion-button>
             </div>
-            <div class="kv-row"><span class="kv-label">Nome</span><span>{{ account.name }}</span></div>
-            <div class="kv-row"><span class="kv-label">Email</span><span>{{ account.email }}</span></div>
+            <ion-input label="Nome" label-placement="stacked" v-model="nomeNovo"></ion-input>
+            <div class="kv-row"><span class="kv-label">Email</span><span>{{ email }}</span></div>
+            
+            <ion-input label="Senha" label-placement="stacked" v-model="senhaNovo"></ion-input>
+
             <div class="kv-row"><span class="kv-label">Conta criada em</span><span>{{ account.createdAt }}</span></div>
           </div>
           <div class="action-row">
-            <ion-button fill="outline" color="medium" style="--border-radius: 9px" @click="toast('Edição de perfil ainda não implementada nesta versão')">
-              <ion-icon slot="start" :icon="createOutline" />Editar perfil
+            <ion-button fill="outline" color="medium" style="--border-radius: 9px" @click="salvarNome()">
+              <ion-icon slot="start" :icon="createOutline" />Atualizar Nome
+
             </ion-button>
-            <ion-button fill="outline" color="medium" style="--border-radius: 9px" @click="toast('Alteração de senha ainda não implementada nesta versão')">
+            <ion-button fill="outline" color="medium" style="--border-radius: 9px" @click="salvarSenha()">
               Alterar senha
             </ion-button>
-            <ion-button fill="clear" color="danger" @click="router.replace('/login')">
+            <ion-button fill="clear" color="danger" @click="sair()">
               <ion-icon slot="start" :icon="logOutOutline" />Sair da conta
             </ion-button>
           </div>
@@ -115,14 +119,17 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import {
   IonPage, IonHeader, IonToolbar, IonTitle, IonSegment, IonSegmentButton, IonLabel,
-  IonContent, IonButton, IonIcon, IonToggle, IonToast,
+  IonContent, IonButton, IonIcon, IonToggle, IonToast, IonInput,
 } from '@ionic/vue';
 import { createOutline, logOutOutline } from 'ionicons/icons';
 import { account, aiProfile, prefs } from '@/composables/useMockData';
+import { alternarSenha, atualizarPerfil, logout } from '@/service/AuthService';
+
+import { auth } from '@/main';
 
 const router = useRouter();
 const tab = ref<'conta' | 'ia' | 'prefs' | 'config'>('conta');
@@ -135,10 +142,57 @@ const prefItems = [
   { key: 'responderPortugues', label: 'Responder em português' },
 ];
 const estrutura = ['Objetivo', 'Contexto', 'Instruções', 'Restrições', 'Formato'];
+const nome = ref("")
+const email = ref("")
+
+
+const nomeNovo = ref("")
+const senhaNovo = ref("")
 
 const toastOpen = ref(false);
 const toastText = ref('');
 function toast(msg: string) { toastText.value = msg; toastOpen.value = true; }
+
+
+
+
+async function salvarNome() {
+  try {
+    await atualizarPerfil(nomeNovo.value);
+    nome.value = nomeNovo.value;
+    alert("Nome atualizado!")
+  } catch (e:any) {
+    alert(e.message)
+  }
+}
+
+async function salvarSenha() {
+  try {
+    await alternarSenha(senhaNovo.value);
+
+    senhaNovo.value = "";
+    alert("Senha atualizada com sucesso.")
+  } catch(e:any) {
+    alert(e.message)
+  }
+}
+
+async function sair() {
+  await logout();
+
+  router.replace('/login')
+}
+
+onMounted(() => {
+  const user = auth.currentUser;
+
+  if(!user) return;
+
+  nome.value = user.displayName || "";
+  email.value = user.email || "";
+
+  nomeNovo.value = nome.value;
+})
 </script>
 
 <style scoped>

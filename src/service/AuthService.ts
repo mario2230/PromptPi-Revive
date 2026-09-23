@@ -22,16 +22,21 @@ export function logout() {
 }
 
 export async function atualizarPerfil(displayName:string){
-
     const user = auth.currentUser
 
-    if(!user)
+    if (!user)
         throw new Error('Usuário não autenticado')
 
-    await updateProfile(user,{
-        displayName
+    const nome = displayName.trim()
+
+    if (!nome)
+        throw new Error('Informe um nome válido')
+
+    await updateProfile(user, {
+        displayName: nome
     })
 
+    return user
 }
 
 export function alternarSenha(novaSenha: string) {
