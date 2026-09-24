@@ -57,20 +57,20 @@
         <template v-else-if="tab === 'ia'">
           <div class="panel">
             <h4>Contexto profissional</h4>
-            <div class="kv-row"><span class="kv-label">Profissão</span><span>{{ aiProfile.profissao }}</span></div>
-            <div class="kv-row"><span class="kv-label">Área</span><span>{{ aiProfile.area }}</span></div>
-            <div class="kv-row"><span class="kv-label">Nível</span><span>{{ aiProfile.nivel }}</span></div>
-            <div class="kv-row"><span class="kv-label">Objetivos</span><span class="kv-wrap">{{ aiProfile.objetivos }}</span></div>
+            <div class="kv-row"><span class="kv-label">Profissão</span><span>{{ perfil?.contextoProfissional?.profissao || 'Não informado' }}</span></div>
+            <div class="kv-row"><span class="kv-label">Área</span><span>{{ perfil?.contextoProfissional?.area || 'Não informado' }}</span></div>
+            <div class="kv-row"><span class="kv-label">Nível</span><span>{{ perfil?.contextoProfissional?.nivel || 'Não informado' }}</span></div>
+            <div class="kv-row"><span class="kv-label">Objetivos</span><span class="kv-wrap">{{ perfil?.objetivos?.join(', ') || 'Não informado' }}</span></div>
           </div>
           <div class="panel">
             <h4>Tecnologias e ferramentas</h4>
-            <div class="tech-list"><span class="pill" v-for="t in aiProfile.tecnologias" :key="t">{{ t }}</span></div>
+            <div class="tech-list"><span class="pill" v-for="t in perfil.tecnologias" :key="t">{{ t }}</span></div>
           </div>
           <div class="panel">
             <h4>Comunicação</h4>
-            <div class="kv-row"><span class="kv-label">Idioma</span><span>{{ aiProfile.idioma }}</span></div>
-            <div class="kv-row"><span class="kv-label">Tom</span><span>{{ aiProfile.tom }}</span></div>
-            <div class="kv-row"><span class="kv-label">Estilo</span><span>{{ aiProfile.estilo }}</span></div>
+            <div class="kv-row"><span class="kv-label">Idioma</span><span>{{ perfil?.idioma || 'Não informado' }}</span></div>
+            <div class="kv-row"><span class="kv-label">Tom</span><span>{{ perfil?.preferencias?.tom || 'Não informado' }}</span></div>
+            <div class="kv-row"><span class="kv-label">Estilo</span><span>{{ perfil?.estilo || 'Não informado' }}</span></div>
           </div>
           <div class="action-row">
             <ion-button color="primary" style="--border-radius: 9px" @click="toast('Edição do perfil de IA ainda não implementada nesta versão')">
@@ -126,7 +126,8 @@ import {
   IonContent, IonButton, IonIcon, IonToggle, IonToast, IonInput,
 } from '@ionic/vue';
 import { createOutline, logOutOutline } from 'ionicons/icons';
-import { account, aiProfile, prefs } from '@/composables/useMockData';
+import { prefs } from '@/composables/useMockData';
+import { buscarPerfil } from '@/service/AuthService';
 import { alternarSenha, atualizarPerfil, logout } from '@/service/AuthService';
 
 import { auth } from '@/main';
@@ -142,8 +143,13 @@ const prefItems = [
   { key: 'responderPortugues', label: 'Responder em português' },
 ];
 const estrutura = ['Objetivo', 'Contexto', 'Instruções', 'Restrições', 'Formato'];
+
+
 const nome = ref("")
 const email = ref("")
+const perfil = ref<any>(null);
+
+
 
 const nomeNovo = ref("")
 const senhaNovo = ref("")
@@ -154,6 +160,8 @@ const nomeInicial = computed(() => (nome.value || 'U').charAt(0).toUpperCase())
 const toastOpen = ref(false);
 const toastText = ref('');
 function toast(msg: string) { toastText.value = msg; toastOpen.value = true; }
+
+
 
 
 
@@ -185,7 +193,7 @@ async function sair() {
   router.replace('/login')
 }
 
-onMounted(() => {
+onMounted(async () => {
   const user = auth.currentUser;
 
   if(!user) return;
@@ -195,6 +203,14 @@ onMounted(() => {
   ContaCriada.value = user.metadata.creationTime || "";
 
   nomeNovo.value = nome.value;
+
+  try {
+    perfil.value = await buscarPerfil(user.uid);
+
+    console.log("Perfil carregado:", perfil.value)
+  } catch(error) {
+    console.error("Error carregar perfil: ", error)
+  }
 })
 </script>
 

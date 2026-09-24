@@ -11,11 +11,8 @@
         <div class="onb-q">{{ current.q }}</div>
 
         <div class="onb-options">
-          <div
-            v-for="opt in current.options" :key="opt"
-            class="chip-native" :class="{ selected: isSelected(opt) }"
-            @click="select(opt)"
-          >
+          <div v-for="opt in current.options" :key="opt" class="chip-native" :class="{ selected: isSelected(opt) }"
+            @click="select(opt)">
             <ion-icon v-if="current.multi && isSelected(opt)" :icon="checkmarkOutline" class="ic-sm" />
             {{ opt }}
           </div>
@@ -41,6 +38,8 @@ import { useRouter } from 'vue-router';
 import { IonPage, IonContent, IonButton, IonIcon } from '@ionic/vue';
 import { checkmarkOutline, chevronBackOutline, chevronForwardOutline } from 'ionicons/icons';
 import { aiProfile } from '@/composables/useMockData';
+import { auth } from '@/main';
+import { salvarPerfil } from '@/service/AuthService';
 
 const router = useRouter();
 
@@ -63,6 +62,41 @@ const answers = reactive<Record<string, string | string[]>>({
   profissao: '', area: '', nivel: '', prefResposta: '', tom: '', contexto: [], tecnologias: [],
 });
 
+async function salvarDados() {
+  const user = auth.currentUser;
+
+  if (!user) {
+    alert("Usuário não autenticado");
+    return false;
+  }
+
+  try {
+    const perfil = {
+      contextoProfissional: {
+        profissao: answers.profissao as string,
+        area: answers.area as string,
+        nivel: answers.nivel as string,
+      },
+
+      preferencias: {
+        prefResposta: answers.prefResposta as string,
+        tom: answers.tom as string,
+      },
+
+      contexto: answers.contexto as string[],
+
+      tecnologias: answers.tecnologias as string[],
+    };
+
+    await salvarPerfil(user.uid, perfil);
+
+    return true;
+  } catch (error) {
+    console.error("Erro ao salvar perfil:", error);
+    alert("Não foi possível salvar seu perfil.");
+    return false;
+  }
+}
 function isSelected(opt: string) {
   const v = answers[current.value.key];
   return current.value.multi ? (v as string[]).includes(opt) : v === opt;
@@ -82,17 +116,40 @@ const canNext = computed(() => {
 });
 
 function back() { if (stepIndex.value > 0) stepIndex.value--; }
-function next() {
+async function next() {
   if (stepIndex.value < steps.length - 1) {
     stepIndex.value++;
     return;
   }
-  if (answers.profissao) aiProfile.profissao = answers.profissao as string;
-  if (answers.area) aiProfile.area = answers.area as string;
-  if (answers.nivel) aiProfile.nivel = answers.nivel as string;
-  if (answers.tom) aiProfile.tom = answers.tom as string;
+
+  const salvo = await salvarDados();
+
+  if (!salvo) {
+    return;
+  }
+
+  if (answers.profissao) {
+    aiProfile.profissao = answers.profissao as string;
+  }
+
+  if (answers.area) {
+    aiProfile.area = answers.area as string;
+  }
+
+  if (answers.nivel) {
+    aiProfile.nivel = answers.nivel as string;
+  }
+
+  if (answers.tom) {
+    aiProfile.tom = answers.tom as string;
+  }
+
   const tecs = answers.tecnologias as string[];
-  if (tecs.length) aiProfile.tecnologias = tecs;
+
+  if (tecs.length) {
+    aiProfile.tecnologias = tecs;
+  }
+
   router.replace('/app/tabs/chat');
 }
 </script>
@@ -104,19 +161,84 @@ function next() {
     radial-gradient(ellipse 800px 600px at 105% 105%, rgba(62, 92, 231, 0.2), transparent 60%),
     var(--ion-background-color);
 }
-.onb-wrap { max-width: 520px; margin: 0 auto; padding: 56px 20px; }
-.onb-progress { display: flex; gap: 6px; margin-bottom: 34px; }
-.onb-progress span { flex: 1; height: 3px; background: var(--pp-border); border-radius: 3px; overflow: hidden; }
-.onb-progress span i { display: block; height: 100%; background: linear-gradient(90deg, var(--pp-primary), var(--pp-blue)); width: 0%; }
-.onb-step-label { color: var(--pp-muted); font-size: 12.5px; margin-bottom: 10px; }
-.onb-q { font-family: var(--pp-font-voice); font-size: 24px; font-weight: 500; margin: 0 0 24px; line-height: 1.3; }
-.onb-options { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 28px; }
-.chip-native {
-  display: inline-flex; align-items: center; gap: 6px; padding: 11px 17px; border-radius: 20px;
-  border: 1px solid var(--pp-border); background: var(--pp-surface); color: var(--pp-text);
-  font-size: 14.5px; cursor: pointer; transition: all 0.15s ease; user-select: none;
+
+.onb-wrap {
+  max-width: 520px;
+  margin: 0 auto;
+  padding: 56px 20px;
 }
-.chip-native:hover { border-color: var(--pp-muted-2); }
-.chip-native.selected { background: rgba(139, 108, 255, 0.16); border-color: var(--pp-primary); color: var(--pp-lilac); }
-.onb-nav { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+
+.onb-progress {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 34px;
+}
+
+.onb-progress span {
+  flex: 1;
+  height: 3px;
+  background: var(--pp-border);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.onb-progress span i {
+  display: block;
+  height: 100%;
+  background: linear-gradient(90deg, var(--pp-primary), var(--pp-blue));
+  width: 0%;
+}
+
+.onb-step-label {
+  color: var(--pp-muted);
+  font-size: 12.5px;
+  margin-bottom: 10px;
+}
+
+.onb-q {
+  font-family: var(--pp-font-voice);
+  font-size: 24px;
+  font-weight: 500;
+  margin: 0 0 24px;
+  line-height: 1.3;
+}
+
+.onb-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 28px;
+}
+
+.chip-native {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 11px 17px;
+  border-radius: 20px;
+  border: 1px solid var(--pp-border);
+  background: var(--pp-surface);
+  color: var(--pp-text);
+  font-size: 14.5px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  user-select: none;
+}
+
+.chip-native:hover {
+  border-color: var(--pp-muted-2);
+}
+
+.chip-native.selected {
+  background: rgba(139, 108, 255, 0.16);
+  border-color: var(--pp-primary);
+  color: var(--pp-lilac);
+}
+
+.onb-nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
 </style>

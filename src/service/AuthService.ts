@@ -1,6 +1,52 @@
 import { auth } from '@/main'
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, updateProfile, updatePassword, onAuthStateChanged, User } from 'firebase/auth'
-import { F } from 'vue-router/dist/index-D7ja2BKs'
+import { db } from '@/main'
+import { doc, setDoc, serverTimestamp, getDocFromCache, getDoc } from "firebase/firestore";
+
+
+export interface UserProfile {
+  contextoProfissional: {
+    profissao: string;
+    area: string;
+    nivel: string;
+  };
+
+  preferencias: {
+    prefResposta: string;
+    tom: string;
+  };
+
+  contexto: string[];
+
+  tecnologias: string[];
+}
+
+
+
+export async function buscarPerfil(uid:string) {
+    const userRef = doc(db, "users", uid);
+
+    const snapShot = await getDoc(userRef);
+
+    if(!snapShot.exists()) {
+        return null;
+    }
+
+    return snapShot.data();
+}
+
+export async function salvarPerfil(uid: string, dados: UserProfile): Promise<void> {
+    const userRef = doc(db, "users", uid);
+
+    await setDoc(
+        userRef,
+        {
+            ...dados,
+            atualizadoEm: serverTimestamp(),
+        },
+        { merge: true}
+    );
+}
 
 export async function cadastrar(email:string, senha:string){
     const credential = await createUserWithEmailAndPassword(
