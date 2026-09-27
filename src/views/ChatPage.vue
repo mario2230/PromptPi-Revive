@@ -74,7 +74,7 @@
     </div>
 
     <StructureModal
-      :is-open="structOpen" :template="structTemplate" :vars="{}" :usadas="structUsadas"
+      :is-open="structOpen" :template="structTemplate" :vars="structVars" :usadas="structUsadas"
       @close="structOpen = false"
     />
     <ion-toast :is-open="toastOpen" :message="toastText" :duration="2200" position="bottom" @didDismiss="toastOpen = false" />
@@ -92,8 +92,15 @@ import {
   refreshOutline, layersOutline, sendOutline,
 } from 'ionicons/icons';
 import { chatLog, resetChat, type ChatMessage } from '@/composables/useChatState';
-import { generateMockPrompt, saveGeneratedPrompt } from '@/composables/useMockData';
+import { saveGeneratedPrompt } from '@/composables/useMockData';
+import { gerarPromptComIA } from '@/service/PromptAIService';
+import { buscarPerfil } from '@/service/AuthService';
+import { auth } from '@/main';
 import StructureModal from '@/components/StructureModal.vue';
+
+function tituloAPartirDoTexto(texto: string) {
+  return texto.length > 42 ? texto.slice(0, 42) + '…' : texto;
+}
 
 const suggestions = [
   { t: 'Revisar código', s: 'Encontrar bugs e melhorar um trecho de código' },
@@ -111,6 +118,7 @@ function toast(msg: string) { toastText.value = msg; toastOpen.value = true; }
 
 const structOpen = ref(false);
 const structTemplate = ref('');
+const structVars = ref<Record<string, string>>({});
 const structUsadas = ref<string[]>([]);
 
 function novaConversa() { resetChat(); }
@@ -124,20 +132,38 @@ function scrollDown() {
   requestAnimationFrame(() => contentEl.value?.$el?.scrollToBottom?.(150));
 }
 
-function enviar() {
+async function enviar() {
   const text = draft.value.trim();
   if (!text) return;
+
   chatLog.push({ role: 'user', text });
   draft.value = '';
   scrollDown();
+
   chatLog.push({ role: 'thinking' });
   scrollDown();
-  setTimeout(() => {
+
+  try {
+    const perfil = auth.currentUser ? await buscarPerfil(auth.currentUser.uid) : null;
+
+    const resposta = await gerarPromptComIA(text, perfil);
+
+    chatLog.pop(); 
+    chatLog.push({
+      role: 'result',
+      id: 'gen-' + Date.now(),
+      titulo: tituloAPartirDoTexto(text),
+      corpo: resposta.promptFinal,
+      usadas: resposta.usadas,
+      template: resposta.template,
+      vars: resposta.variaveis,
+    });
+  } catch (err) {
     chatLog.pop();
-    const gerado = generateMockPrompt(text);
-    chatLog.push({ role: 'result', id: 'gen-' + Date.now(), ...gerado });
-    scrollDown();
-  }, 950);
+    toast(err instanceof Error ? err.message : 'Não foi possível gerar o prompt');
+  }
+
+  scrollDown();
 }
 
 function copyText(text: string) {
@@ -148,15 +174,32 @@ function salvar(m: Extract<ChatMessage, { role: 'result' }>) {
   saveGeneratedPrompt(m.titulo, m.corpo, m.usadas);
   toast('Prompt salvo em Meus Prompts');
 }
-function regenerar(index: number) {
+async function regenerar(index: number) {
   const anteriores = chatLog.slice(0, index).filter((x) => x.role === 'user') as Extract<ChatMessage, { role: 'user' }>[];
   const ultimo = anteriores[anteriores.length - 1];
-  const gerado = generateMockPrompt(ultimo ? ultimo.text : 'sua solicitação');
+  const texto = ultimo ? ultimo.text : 'sua solicitação';
   const atual = chatLog[index] as Extract<ChatMessage, { role: 'result' }>;
-  chatLog.splice(index, 1, { role: 'result', id: atual.id, ...gerado });
+
+  try {
+    const perfil = auth.currentUser ? await buscarPerfil(auth.currentUser.uid) : null;
+    const resposta = await gerarPromptComIA(texto, perfil);
+
+    chatLog.splice(index, 1, {
+      role: 'result',
+      id: atual.id,
+      titulo: tituloAPartirDoTexto(texto),
+      corpo: resposta.promptFinal,
+      usadas: resposta.usadas,
+      template: resposta.template,
+      vars: resposta.variaveis,
+    });
+  } catch (err) {
+    toast(err instanceof Error ? err.message : 'Não foi possível gerar o prompt');
+  }
 }
 function abrirEstrutura(m: Extract<ChatMessage, { role: 'result' }>) {
-  structTemplate.value = m.corpo;
+  structTemplate.value = m.template ?? m.corpo;
+  structVars.value = m.vars ?? {};
   structUsadas.value = m.usadas;
   structOpen.value = true;
 }
