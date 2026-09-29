@@ -68,51 +68,6 @@ export const categories = reactive<Category[]>([
   { id: 'criatividade', nome: 'Criatividade', icon: 'color-wand-outline' },
 ]);
 
-export const prompts = reactive<PromptItem[]>([
-  {
-    id: 'p1', titulo: 'Revisão de código PHP', categoria: 'programacao', favorito: true,
-    desc: 'Analisa problemas e sugere melhorias em código PHP considerando boas práticas.',
-    template: 'Você é um especialista em {area}.\n\nAnalise meu código desenvolvido utilizando {tecnologia}.\n\nMeu nível de conhecimento é {nivel}.\n\nExplique os problemas de maneira {tom}, com exemplos práticos.\n\nCódigo:\n{codigo}',
-    vars: { area: 'desenvolvimento web', tecnologia: 'PHP', nivel: 'intermediário', tom: 'direta e prática', codigo: '[cole seu código aqui]' },
-    usadas: ['Profissão', 'Área', 'Nível', 'Tecnologia', 'Tom de resposta'], data: '18 set 2026', usos: 12,
-  },
-  {
-    id: 'p2', titulo: 'Explicar conceito para estudo', categoria: 'estudos', favorito: false,
-    desc: 'Transforma qualquer assunto em uma explicação didática com exemplos.',
-    template: 'Explique o conceito de {assunto} para alguém no nível {nivel}.\n\nUse uma linguagem {tom} e traga pelo menos um exemplo prático.\n\nEvite jargões sem explicá-los antes.',
-    vars: { assunto: '[o que você quer estudar]', nivel: 'intermediário', tom: 'direta e prática' },
-    usadas: ['Nível', 'Tom de resposta', 'Idioma'], data: '15 set 2026', usos: 5,
-  },
-  {
-    id: 'p3', titulo: 'Revisar e-mail profissional', categoria: 'trabalho', favorito: true,
-    desc: 'Deixa e-mails de trabalho mais claros, objetivos e com o tom certo.',
-    template: 'Revise o e-mail abaixo mantendo um tom {tom}.\n\nDeixe direto, sem perder a educação.\n\nIdioma: {idioma}.\n\nE-mail:\n{texto}',
-    vars: { tom: 'direto e prático', idioma: 'português', texto: '[cole seu e-mail aqui]' },
-    usadas: ['Tom de resposta', 'Idioma'], data: '10 set 2026', usos: 8,
-  },
-  {
-    id: 'p4', titulo: 'Gerar ideias de post', categoria: 'marketing', favorito: false,
-    desc: 'Cria variações de posts para redes sociais a partir de um tema.',
-    template: 'Crie 5 variações de post sobre {tema} para {rede}.\n\nTom: {tom}.\n\nPúblico: {publico}.',
-    vars: { tema: '[seu tema]', rede: 'Instagram', tom: 'direto e prático', publico: 'desenvolvedores' },
-    usadas: ['Tom de resposta'], data: '6 set 2026', usos: 2,
-  },
-  {
-    id: 'p5', titulo: 'Resumo de artigo técnico', categoria: 'pesquisa', favorito: false,
-    desc: 'Resume artigos técnicos mantendo os pontos essenciais.',
-    template: 'Resuma o texto abaixo em tópicos claros, nível {nivel}.\n\nDestaque conceitos-chave em negrito.\n\nTexto:\n{texto}',
-    vars: { nivel: 'intermediário', texto: '[cole o artigo aqui]' },
-    usadas: ['Nível', 'Idioma'], data: '2 set 2026', usos: 3,
-  },
-  {
-    id: 'p6', titulo: 'Planejar rotina de estudos', categoria: 'produtividade', favorito: false,
-    desc: 'Monta um plano de estudos semanal com base no seu tempo disponível.',
-    template: 'Monte um plano de estudos semanal sobre {assunto}.\n\nTenho {tempo} disponíveis por dia.\n\nMeu nível é {nivel}.',
-    vars: { assunto: '[assunto]', tempo: '1 hora', nivel: 'intermediário' },
-    usadas: ['Nível'], data: '28 ago 2026', usos: 1,
-  },
-]);
-
 export const conversations = reactive<Conversation[]>([
   { id: 'c1', titulo: 'Prompt para revisar PHP', dia: 'Hoje' },
   { id: 'c2', titulo: 'Prompt para estudar matemática', dia: 'Hoje' },
@@ -135,44 +90,8 @@ export function extractVars(tpl: string): string[] {
   return [...new Set(matches.map((m) => m.slice(1, -1)))];
 }
 
-export function toggleFavorite(id: string) {
-  const p = prompts.find((x) => x.id === id);
-  if (p) p.favorito = !p.favorito;
-}
-
 export function categoryById(id: string) {
   return categories.find((c) => c.id === id);
-}
-
-export function findPrompt(id: string) {
-  return prompts.find((p) => p.id === id);
-}
-
-export function createOrUpdatePrompt(payload: {
-  id?: string; titulo: string; desc: string; categoria: string; template: string;
-}) {
-  if (payload.id) {
-    const p = findPrompt(payload.id);
-    if (p) Object.assign(p, { titulo: payload.titulo, desc: payload.desc, categoria: payload.categoria, template: payload.template });
-    return p;
-  }
-  const novo: PromptItem = {
-    id: 'p' + (prompts.length + 1) + '-' + Date.now(),
-    titulo: payload.titulo, desc: payload.desc, categoria: payload.categoria, template: payload.template,
-    vars: {}, usadas: [], favorito: false, data: 'hoje', usos: 0,
-  };
-  prompts.unshift(novo);
-  return novo;
-}
-
-export function saveGeneratedPrompt(titulo: string, corpo: string, usadas: string[]) {
-  const novo: PromptItem = {
-    id: 'p' + (prompts.length + 1) + '-' + Date.now(),
-    titulo, categoria: 'produtividade', favorito: false,
-    desc: corpo.slice(0, 90) + '…', template: corpo, vars: {}, usadas, data: 'hoje', usos: 0,
-  };
-  prompts.unshift(novo);
-  return novo;
 }
 
 /**

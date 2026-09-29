@@ -38,7 +38,9 @@
           </div>
 
           <div class="action-row">
-            <ion-button color="primary" style="--border-radius: 9px" @click="salvar">Salvar prompt</ion-button>
+            <ion-button color="primary" style="--border-radius: 9px" :disabled="saving" @click="salvar">
+              {{ saving ? 'Salvando...' : 'Salvar prompt' }}
+            </ion-button>
             <ion-button fill="clear" color="medium" @click="router.push(backHref)">Cancelar</ion-button>
           </div>
         </div>
@@ -49,13 +51,16 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue';
+import { computed, onMounted, ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import {
   IonPage, IonHeader, IonToolbar, IonTitle, IonButtons, IonBackButton, IonContent,
   IonItem, IonLabel, IonInput, IonTextarea, IonSelect, IonSelectOption, IonButton, IonToast,
 } from '@ionic/vue';
-import { categories, findPrompt, createOrUpdatePrompt, extractVars } from '@/composables/useMockData';
+import { categories, extractVars } from '@/composables/useMockData';
+import { carregarPrompts, findPrompt, upsertPrompt } from '../composables/usePrompts';
+import { auth } from '@/main';
+import { salvarPrompt } from '@/service/PromptService';
 
 const route = useRoute();
 const router = useRouter();
@@ -63,28 +68,63 @@ const router = useRouter();
 // id "new" (ou ausência de :id) = criação; qualquer outro valor = edição
 const idParam = route.params.id as string | undefined;
 const editing = computed(() => !!idParam && idParam !== 'new');
-const existing = editing.value ? findPrompt(idParam as string) : undefined;
+const existing = computed(() => editing.value ? findPrompt(idParam as string) : undefined);
 
-const titulo = ref(existing?.titulo || '');
-const desc = ref(existing?.desc || '');
-const categoria = ref(existing?.categoria || '');
-const template = ref(existing?.template || '');
+const titulo = ref(existing.value?.titulo || '');
+const desc = ref(existing.value?.desc || '');
+const categoria = ref(existing.value?.categoria || '');
+const template = ref(existing.value?.template || '');
 
 const detected = computed(() => extractVars(template.value));
-const backHref = computed(() => (editing.value && existing ? `/app/prompts/${existing.id}` : '/app/tabs/prompts'));
+const backHref = computed(() => (editing.value && existing.value ? `/app/prompts/${existing.value.id}` : '/app/tabs/prompts'));
 
 const toastOpen = ref(false);
 const toastText = ref('');
+const saving = ref(false);
 function toast(msg: string) { toastText.value = msg; toastOpen.value = true; }
 
-function salvar() {
+onMounted(async () => {
+  if (!editing.value || existing.value || !auth.currentUser) return;
+  try {
+    await carregarPrompts(auth.currentUser.uid);
+    const prompt = findPrompt(idParam as string);
+    if (prompt) {
+      titulo.value = prompt.titulo;
+      desc.value = prompt.desc;
+      categoria.value = prompt.categoria;
+      template.value = prompt.template;
+    }
+  } catch (error) {
+    toast(error instanceof Error ? error.message : 'Não foi possível carregar o prompt');
+  }
+});
+
+async function salvar() {
   if (!titulo.value.trim()) { toast('Dê um nome ao prompt antes de salvar'); return; }
-  const salvo = createOrUpdatePrompt({
-    id: existing?.id, titulo: titulo.value.trim(), desc: desc.value.trim(),
-    categoria: categoria.value, template: template.value,
-  });
-  toast(editing.value ? 'Alterações salvas' : 'Prompt criado');
-  if (salvo) router.replace(`/app/prompts/${salvo.id}`);
+  if (!auth.currentUser) { toast('Entre na sua conta para salvar prompts'); return; }
+
+  saving.value = true;
+  try {
+    const salvo = await salvarPrompt(auth.currentUser.uid, {
+      id: editing.value ? idParam : undefined,
+      titulo: titulo.value.trim(),
+      desc: desc.value.trim(),
+      categoria: categoria.value,
+      template: template.value,
+      favorito: existing.value?.favorito ?? false,
+      vars: existing.value?.vars ?? {},
+      usadas: existing.value?.usadas ?? [],
+      data: new Date().toLocaleDateString('pt-BR'),
+      usos: existing.value?.usos ?? 0,
+    });
+    upsertPrompt(salvo);
+    toast(editing.value ? 'Alterações salvas' : 'Prompt criado');
+    router.replace(`/app/prompts/${salvo.id}`);
+  } catch (error) {
+    toast(error instanceof Error ? error.message : 'Não foi possível salvar o prompt');
+  } finally {
+    saving.value = false;
+  }
 }
 </script>
 

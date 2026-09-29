@@ -32,24 +32,39 @@
 
       <PromptGrid :filter="filter" :search="search" />
     </ion-content>
+    <ion-toast :is-open="toastOpen" :message="toastText" :duration="2500" position="bottom" @didDismiss="toastOpen = false" />
   </ion-page>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { onMounted, ref } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
-import { IonPage, IonHeader, IonToolbar, IonTitle, IonButtons, IonButton, IonIcon, IonContent } from '@ionic/vue';
+import { IonPage, IonHeader, IonToolbar, IonTitle, IonButtons, IonButton, IonIcon, IonContent, IonToast } from '@ionic/vue';
 import { addOutline, searchOutline, gridOutline, timeOutline } from 'ionicons/icons';
 import PromptGrid from '@/components/PromptGrid.vue';
 import { categoryById } from '@/composables/useMockData';
+import { carregarPrompts } from '@/composables/usePrompts';
+import { auth } from '@/main';
+import { buscarPrompts } from '@/service/PromptService';
 
 const router = useRouter();
 const route = useRoute();
 const filter = ref<'todos' | 'favoritos' | 'recentes'>('todos');
 
-// chegando de Categorias com ?categoria=id, pré-preenche a busca com o nome da categoria
 const catId = route.query.categoria as string | undefined;
 const search = ref(catId ? (categoryById(catId)?.nome || '') : '');
+const toastOpen = ref(false);
+const toastText = ref('');
+
+onMounted(async () => {
+  if (!auth.currentUser) return;
+  try {
+    await carregarPrompts(auth.currentUser.uid);
+  } catch (error) {
+    toastText.value = error instanceof Error ? error.message : 'Não foi possível carregar seus prompts';
+    toastOpen.value = true;
+  }
+});
 </script>
 
 <style scoped>

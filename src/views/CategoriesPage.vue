@@ -20,13 +20,16 @@
 </template>
 
 <script setup lang="ts">
+import { onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { IonPage, IonHeader, IonToolbar, IonTitle, IonButtons, IonBackButton, IonContent, IonIcon } from '@ionic/vue';
 import {
   codeSlashOutline, bookOutline, briefcaseOutline, createOutline, megaphoneOutline,
   searchOutline, checkmarkDoneOutline, colorWandOutline, gridOutline,
 } from 'ionicons/icons';
-import { categories, prompts } from '@/composables/useMockData';
+import { categories } from '@/composables/useMockData';
+import { prompts, carregarPrompts } from '@/composables/usePrompts';
+import { auth } from '@/main';
 
 const router = useRouter();
 
@@ -43,6 +46,10 @@ const ICONS: Record<string, any> = {
 function resolveIcon(name: string) { return ICONS[name] || gridOutline; }
 function countFor(id: string) { return prompts.filter((p) => p.categoria === id).length; }
 function abrir(id: string) { router.push({ path: '/app/tabs/prompts', query: { categoria: id } }); }
+
+onMounted(() => {
+  if (auth.currentUser) carregarPrompts(auth.currentUser.uid).catch(() => {});
+});
 </script>
 
 <style scoped>

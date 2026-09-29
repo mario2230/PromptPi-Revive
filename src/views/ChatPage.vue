@@ -91,9 +91,10 @@ import {
   addCircleOutline, sparklesOutline, checkmarkOutline, copyOutline, saveOutline,
   refreshOutline, layersOutline, sendOutline,
 } from 'ionicons/icons';
-import { chatLog, resetChat, type ChatMessage } from '@/composables/useChatState';
-import { saveGeneratedPrompt } from '@/composables/useMockData';
+import { chatDraft as draft, chatLog, resetChat, type ChatMessage } from '@/composables/useChatState';
+import { upsertPrompt } from '@/composables/usePrompts';
 import { gerarPromptComIA } from '@/service/PromptAIService';
+import { salvarPrompt } from '@/service/PromptService';
 import { buscarPerfil } from '@/service/AuthService';
 import { auth } from '@/main';
 import StructureModal from '@/components/StructureModal.vue';
@@ -109,7 +110,6 @@ const suggestions = [
   { t: 'Gerar ideias', s: 'Brainstorm para um projeto ou post' },
 ];
 
-const draft = ref('');
 const contentEl = ref();
 
 const toastOpen = ref(false);
@@ -170,9 +170,25 @@ function copyText(text: string) {
   navigator.clipboard?.writeText(text).catch(() => {});
   toast('Prompt copiado');
 }
-function salvar(m: Extract<ChatMessage, { role: 'result' }>) {
-  saveGeneratedPrompt(m.titulo, m.corpo, m.usadas);
-  toast('Prompt salvo em Meus Prompts');
+async function salvar(m: Extract<ChatMessage, { role: 'result' }>) {
+  if (!auth.currentUser) { toast('Entre na sua conta para salvar prompts'); return; }
+  try {
+    const salvo = await salvarPrompt(auth.currentUser.uid, {
+      titulo: m.titulo,
+      categoria: 'produtividade',
+      favorito: false,
+      desc: m.corpo.length > 90 ? `${m.corpo.slice(0, 90)}…` : m.corpo,
+      template: m.template ?? m.corpo,
+      vars: m.vars ?? {},
+      usadas: m.usadas,
+      data: new Date().toLocaleDateString('pt-BR'),
+      usos: 0,
+    });
+    upsertPrompt(salvo);
+    toast('Prompt salvo em Meus Prompts');
+  } catch (error) {
+    toast(error instanceof Error ? error.message : 'Não foi possível salvar o prompt');
+  }
 }
 async function regenerar(index: number) {
   const anteriores = chatLog.slice(0, index).filter((x) => x.role === 'user') as Extract<ChatMessage, { role: 'user' }>[];

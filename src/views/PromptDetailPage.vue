@@ -59,14 +59,16 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue';
+import { computed, onMounted, ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import {
   IonPage, IonHeader, IonToolbar, IonTitle, IonButtons, IonBackButton, IonContent,
   IonButton, IonIcon, IonToast,
 } from '@ionic/vue';
 import { copyOutline, createOutline, layersOutline, star, starOutline, documentsOutline } from 'ionicons/icons';
-import { findPrompt, categoryById, fillTemplate, toggleFavorite } from '@/composables/useMockData';
+import { categoryById, fillTemplate } from '@/composables/useMockData';
+import { alternarFavorito, carregarPrompts, findPrompt } from '@/composables/usePrompts';
+import { auth } from '@/main';
 import StructureModal from '@/components/StructureModal.vue';
 
 const route = useRoute();
@@ -81,13 +83,29 @@ const toastOpen = ref(false);
 const toastText = ref('');
 function toast(msg: string) { toastText.value = msg; toastOpen.value = true; }
 
+onMounted(async () => {
+  if (!auth.currentUser || prompt.value) return;
+  try {
+    await carregarPrompts(auth.currentUser.uid);
+  } catch (error) {
+    toast(error instanceof Error ? error.message : 'Não foi possível carregar o prompt');
+  }
+});
+
 function copyText(text: string) {
   navigator.clipboard?.writeText(text).catch(() => {});
   toast('Prompt copiado');
 }
-function favoritar() {
-  if (!prompt.value) return;
-  toggleFavorite(prompt.value.id);
+async function favoritar() {
+  if (!prompt.value || !auth.currentUser) {
+    toast('Entre na sua conta para alterar favoritos');
+    return;
+  }
+  try {
+    await alternarFavorito(auth.currentUser.uid, prompt.value.id);
+  } catch (error) {
+    toast(error instanceof Error ? error.message : 'Não foi possível atualizar o favorito');
+  }
 }
 </script>
 

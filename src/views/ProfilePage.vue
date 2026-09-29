@@ -127,6 +127,7 @@ import {
 } from '@ionic/vue';
 import { createOutline, logOutOutline } from 'ionicons/icons';
 import { prefs } from '@/composables/useMockData';
+import { resetChat } from '@/composables/useChatState';
 import { buscarPerfil } from '@/service/AuthService';
 import { alternarSenha, atualizarPerfil, logout } from '@/service/AuthService';
 
@@ -189,6 +190,7 @@ async function salvarSenha() {
 
 async function sair() {
   await logout();
+  resetChat();
 
   router.replace('/login')
 }

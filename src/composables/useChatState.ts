@@ -1,4 +1,4 @@
-import { reactive } from 'vue';
+import { reactive, ref } from 'vue';
 
 export type ChatMessage =
   | { role: 'user'; text: string }
@@ -14,7 +14,9 @@ export type ChatMessage =
     };
 
 export const chatLog = reactive<ChatMessage[]>([]);
+export const chatDraft = ref('');
 
 export function resetChat() {
   chatLog.splice(0, chatLog.length);
+  chatDraft.value = '';
 }

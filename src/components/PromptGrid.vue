@@ -12,18 +12,18 @@
     <ion-icon :icon="documentsOutline" />
     <h3>Nenhum prompt encontrado</h3>
     <p>Ajuste a busca ou crie um novo prompt personalizado.</p>
-    <ion-button color="primary" style="--border-radius: 10px" @click="router.push('/app/prompts/new/edit')">
-      <ion-icon slot="start" :icon="addOutline" />Criar prompt
-    </ion-button>
+
   </div>
+  <ion-toast :is-open="toastOpen" :message="toastText" :duration="2200" position="bottom" @didDismiss="toastOpen = false" />
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
 import { useRouter } from 'vue-router';
-import { IonIcon, IonButton } from '@ionic/vue';
+import { IonIcon, IonButton, IonToast } from '@ionic/vue';
 import { documentsOutline, addOutline } from 'ionicons/icons';
-import { prompts, toggleFavorite as toggleFav, type PromptItem } from '@/composables/useMockData';
+import { prompts, alternarFavorito, type PromptItem } from '@/composables/usePrompts';
+import { auth } from '@/main';
 import PromptCard from '@/components/PromptCard.vue';
 
 const props = defineProps<{
@@ -33,6 +33,8 @@ const props = defineProps<{
 }>();
 
 const router = useRouter();
+const toastOpen = ref(false);
+const toastText = ref('');
 
 const list = computed<PromptItem[]>(() => {
   let l = prompts.slice();
@@ -50,8 +52,18 @@ const list = computed<PromptItem[]>(() => {
   return l;
 });
 
-function toggleFavorite(id: string) {
-  toggleFav(id);
+async function toggleFavorite(id: string) {
+  if (!auth.currentUser) {
+    toastText.value = 'Entre na sua conta para alterar favoritos';
+    toastOpen.value = true;
+    return;
+  }
+  try {
+    await alternarFavorito(auth.currentUser.uid, id);
+  } catch (error) {
+    toastText.value = error instanceof Error ? error.message : 'Não foi possível atualizar o favorito';
+    toastOpen.value = true;
+  }
 }
 </script>
 
