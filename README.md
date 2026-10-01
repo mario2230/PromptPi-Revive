@@ -28,7 +28,7 @@ A parte de backend do projeto está disponível em:
 
 https://github.com/mario2230/PrompPIRevive-backend-main
 
-Esse backend é responsável por serviços e endpoints que o frontend consome, como a geração de prompt com IA.
+Esse backend é responsável por serviços e endpoints que o frontend consome, como a geração de prompt com IA, sem está parte rodando junto ao projeto de front é o aplicativo não funciona.
 
 ## Requisitos
 
